@@ -1,0 +1,39 @@
+strategy,fleet,availability_pct
+Battery swap (10 min),6,69.79921152247931
+Battery swap (10 min),7,81.38638490785452
+Battery swap (10 min),8,92.89406501193828
+Battery swap (10 min),9,100.0
+Battery swap (10 min),10,100.0
+Battery swap (10 min),11,100.0
+Battery swap (10 min),12,100.0
+Battery swap (10 min),13,100.0
+Battery swap (10 min),14,100.0
+Battery swap (10 min),15,100.0
+Battery swap (10 min),16,100.0
+Battery swap (10 min),17,100.0
+Battery swap (10 min),18,100.0
+Battery swap (10 min),19,100.0
+Battery swap (10 min),20,100.0
+Battery swap (10 min),21,100.0
+Battery swap (10 min),22,100.0
+Battery swap (10 min),23,100.0
+Battery swap (10 min),24,100.0
+Recharge (60 min),6,38.38017246608166
+Recharge (60 min),7,44.73586436997549
+Recharge (60 min),8,51.0120629925777
+Recharge (60 min),9,57.21253893331097
+Recharge (60 min),10,63.41301487404425
+Recharge (60 min),11,69.61349081477759
+Recharge (60 min),12,75.81396675551085
+Recharge (60 min),13,82.01444269624412
+Recharge (60 min),14,88.2149186369774
+Recharge (60 min),15,94.41539457771069
+Recharge (60 min),16,100.0
+Recharge (60 min),17,100.0
+Recharge (60 min),18,100.0
+Recharge (60 min),19,100.0
+Recharge (60 min),20,100.0
+Recharge (60 min),21,100.0
+Recharge (60 min),22,100.0
+Recharge (60 min),23,100.0
+Recharge (60 min),24,100.0

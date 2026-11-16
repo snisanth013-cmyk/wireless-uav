@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UAV Disaster Network Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Mission-control console: dark navy field, teal = signal/served, orange = aircraft, red = unserved.
+   Layout: live map on the left (the thing you drag), controls + readouts on the right. */
+:root{
+  --bg:#0A1424; --panel:#101F36; --panel2:#15294A; --line:#21385E;
+  --ink:#E8EEF7; --muted:#8FA3BF; --accent:#2EC4B6; --uav:#F28C28; --bad:#E5484D;
+  --display:"Barlow Condensed", "Arial Narrow", sans-serif;
+  --body:"Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;padding:18px 24px 14px;border-bottom:1px solid var(--line)}
+header h1{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:.3px;margin:0;text-wrap:balance}
+header p{margin:0;color:var(--muted);font-size:14px}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;padding:20px 24px 28px;max-width:1280px;margin:0 auto}
+.mapcard{align-self:start;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.maphead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.maphead h2{font-family:var(--display);font-size:19px;font-weight:600;margin:0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:50%}
+canvas#map{width:100%;aspect-ratio:1/1;border-radius:6px;background:#06101E;touch-action:none;cursor:grab;display:block}
+canvas#map.drag{cursor:grabbing}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+.side{display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.panel h3{font-family:var(--display);font-size:15px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+.ctl{display:grid;gap:4px;margin-bottom:12px}
+.ctl:last-child{margin-bottom:0}
+.ctl label{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted)}
+.ctl label b{color:var(--ink);font-family:var(--mono);font-weight:600;font-size:13px}
+select,button{font-family:var(--body);font-size:14px;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+select{width:100%}
+button{cursor:pointer;font-weight:500}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#04201D;border-color:var(--accent);font-weight:600}
+button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid var(--uav);outline-offset:2px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row button{flex:1 1 auto}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{flex:1;border:0;border-radius:0;background:transparent}
+.seg button[aria-pressed=true]{background:var(--panel2);color:var(--accent);font-weight:600}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--panel2);border-radius:8px;padding:10px 12px;border-left:3px solid var(--line)}
+.tile .v{font-family:var(--display);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:12.5px;color:var(--muted)}
+.tile.good{border-left-color:var(--accent)} .tile.warn{border-left-color:var(--uav)} .tile.bad{border-left-color:var(--bad)}
+.status{font-family:var(--mono);font-size:12px;color:var(--muted);min-height:18px}
+canvas#rh{width:100%;height:150px;display:block}
+footer{max-width:1280px;margin:0 auto;padding:0 24px 28px;color:var(--muted);font-size:12.5px}
+footer p{margin:4px 0;max-width:90ch}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;padding:16px}header{padding:16px}footer{padding:0 16px 24px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>UAV Disaster Network Simulator</h1>
+  <p>Flying LTE base stations over a 4 × 4 km relief-camp zone · Al-Hourani air-to-ground model, 2 GHz</p>
+</header>
+
+<div class="wrap">
+  <section class="mapcard" aria-label="Coverage map">
+    <div class="maphead">
+      <h2 id="mapTitle">Best-server SINR map</h2>
+      <div class="legend">
+        <span><i class="sw" style="background:#fff"></i>Served user</span>
+        <span><i class="sw" style="background:var(--bad)"></i>Not served</span>
+        <span><i class="sw" style="background:var(--uav);border-radius:2px"></i>UAV base station</span>
+      </div>
+    </div>
+    <canvas id="map" width="900" height="900" tabindex="0" aria-label="Map of users and UAV base stations; drag a UAV to move it"></canvas>
+    <p class="hint">Drag any UAV to reposition it: coverage, SINR and throughput update live. Dashed rings show each UAV's coverage radius R at the current altitude.</p>
+  </section>
+
+  <aside class="side">
+    <div class="panel">
+      <h3>Live results</h3>
+      <div class="tiles">
+        <div class="tile" id="tCov"><div class="v" id="mCov">–</div><div class="l">users served</div></div>
+        <div class="tile" id="tSinr"><div class="v" id="mSinr">–</div><div class="l">median SINR (dB)</div></div>
+        <div class="tile"><div class="v" id="mSum">–</div><div class="l">sum throughput (Mbps)</div></div>
+        <div class="tile"><div class="v" id="mEdge">–</div><div class="l">5th-pct user rate (Mbps)</div></div>
+        <div class="tile"><div class="v" id="mR">–</div><div class="l">coverage radius R (m)</div></div>
+        <div class="tile"><div class="v" id="mTh">–</div><div class="l">elevation angle at R</div></div>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Scenario</h3>
+      <div class="ctl"><label for="env">Environment</label>
+        <select id="env">
+          <option value="suburban">Suburban</option>
+          <option value="urban" selected>Urban</option>
+          <option value="dense_urban">Dense urban</option>
+          <option value="highrise_urban">High-rise urban</option>
+        </select></div>
+      <div class="ctl"><label for="k">Number of UAVs <b id="kV">6</b></label><input id="k" type="range" min="1" max="12" value="6"></div>
+      <div class="ctl"><label for="h">Altitude h <b id="hV">646 m</b></label><input id="h" type="range" min="30" max="1500" value="646"></div>
+      <div class="row" style="margin-bottom:12px">
+        <button id="hOpt" type="button">Set optimal altitude</button>
+        <button id="hCap" type="button">Set 120 m cap</button>
+      </div>
+      <div class="ctl"><label for="pt">Transmit power <b id="ptV">20 dBm</b></label><input id="pt" type="range" min="10" max="33" value="20"></div>
+      <div class="ctl"><label>Frequency reuse (15 MHz total)</label>
+        <div class="seg" role="group" aria-label="Frequency reuse">
+          <button type="button" id="r1" aria-pressed="true">Reuse 1</button>
+          <button type="button" id="r3" aria-pressed="false">Reuse 3</button>
+        </div></div>
+    </div>
+
+    <div class="panel">
+      <h3>Placement algorithm</h3>
+      <div class="ctl"><label for="alg">Strategy</label>
+        <select id="alg">
+          <option>Random</option>
+          <option>Grid</option>
+          <option>K-means</option>
+          <option>Greedy-MCP</option>
+          <option selected>Hybrid Greedy-PSO</option>
+        </select></div>
+      <div class="row">
+        <button id="place" class="primary" type="button">Place UAVs</button>
+        <button id="newScen" type="button">New scenario</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Coverage radius vs altitude</h3>
+      <canvas id="rh" width="700" height="280" aria-label="Chart of coverage radius against altitude"></canvas>
+    </div>
+  </aside>
+</div>
+
+<footer>
+  <p><b>Model.</b> P<sub>LoS</sub>(θ) = 1 / (1 + a·e<sup>−b(θ−a)</sup>); mean path loss = FSPL + P<sub>LoS</sub>·η<sub>LoS</sub> + (1−P<sub>LoS</sub>)·η<sub>NLoS</sub>. Link budget: 3 dBi UAV antenna, 3 dB losses, maximum path loss 100 dB at 20 dBm (scaled with transmit power), 7 dB noise figure, service threshold SINR ≥ 0 dB. Users share their UAV's bandwidth equally; rate = (B / n) · log₂(1 + SINR).</p>
+  <p>Browser version of the team's Python implementation (uav_drn) for the Wireless &amp; Mobile Communication case study, SRM Institute of Science and Technology. The Hybrid strategy here uses a lighter swarm than the Python code, so its numbers can differ slightly.</p>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const AREA = 4000, FC = 2e9, C = 299792458;
+  const ENV = {
+    suburban:{a:4.88,b:0.43,el:0.1,en:21}, urban:{a:9.61,b:0.16,el:1.0,en:20},
+    dense_urban:{a:12.08,b:0.11,el:1.6,en:23}, highrise_urban:{a:27.23,b:0.08,el:2.3,en:34}
+  };
+  const S = { env:"urban", K:6, h:646, pt:20, reuse:1, alg:"Hybrid Greedy-PSO", seed:3, users:[], uavs:[], R:0 };
+  const $ = id => document.getElementById(id);
+
+  // ---------- channel ----------
+  function pathLoss(h, r, e){
+    const p = ENV[e], d = Math.sqrt(h*h + r*r);
+    const th = Math.atan2(h, r) * 180 / Math.PI;
+    const pl = 1 / (1 + p.a * Math.exp(-p.b * (th - p.a)));
+    return 20 * Math.log10(4 * Math.PI * FC * Math.max(d, 1e-3) / C) + pl * p.el + (1 - pl) * p.en;
+  }
+  const plMax = () => 100 + (S.pt - 20);
+  function radius(h, e, pm){
+    if (pathLoss(h, 0, e) > pm) return 0;
+    let lo = 0, hi = 10;
+    while (pathLoss(h, hi, e) < pm && hi < 1e6) hi *= 2;
+    for (let i = 0; i < 50; i++){ const m = (lo + hi) / 2; if (pathLoss(h, m, e) <= pm) lo = m; else hi = m; }
+    return lo;
+  }
+  function optimalAlt(e, pm){
+    let best = 0, bh = 1;
+    for (let h = 5; h <= 3000; h += 2){ const R = radius(h, e, pm); if (R > best){ best = R; bh = h; } }
+    return bh;
+  }
+
+  // ---------- scenario ----------
+  function rng(seed){ let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function gauss(r){ let u = 0, v = 0; while (u === 0) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function makeScenario(seed){
+    const r = rng(seed * 7919 + 1), camps = [], users = [];
+    while (camps.length < 6){
+      const c = [400 + r() * (AREA - 800), 400 + r() * (AREA - 800)];
+      if (camps.every(q => Math.hypot(c[0] - q[0], c[1] - q[1]) >= 700)) camps.push(c);
+    }
+    for (const c of camps){
+      const n = 70 + Math.floor(r() * 91);
+      for (let i = 0; i < n; i++) users.push([clamp(c[0] + 190 * gauss(r)), clamp(c[1] + 190 * gauss(r))]);
+    }
+    for (let i = 0; i < 160; i++) users.push([r() * AREA, r() * AREA]);
+    return users;
+  }
+  const clamp = v => Math.min(AREA, Math.max(0, v));
+
+  // ---------- network evaluation ----------
+  function evaluate(users, uavs, wantPerUser){
+    const K = uavs.length, N = users.length, bw = 15e6 / S.reuse;
+    const noise = Math.pow(10, (-174 + 10 * Math.log10(bw) + 7) / 10);
+    const eirp = S.pt + 3 - 3, pm = plMax();
+    const ch = channels(uavs);
+    const serving = new Int16Array(N), sinr = new Float64Array(N), ok = new Uint8Array(N);
+    const prx = new Float64Array(K), pls = new Float64Array(K);
+    for (let i = 0; i < N; i++){
+      let best = -1, bp = -1;
+      for (let k = 0; k < K; k++){
+        const pl = pathLoss(S.h, Math.hypot(users[i][0] - uavs[k][0], users[i][1] - uavs[k][1]), S.env);
+        pls[k] = pl; prx[k] = Math.pow(10, (eirp - pl) / 10);
+        if (prx[k] > bp){ bp = prx[k]; best = k; }
+      }
+      let I = 0; for (let k = 0; k < K; k++) if (k !== best && ch[k] === ch[best]) I += prx[k];
+      const s = bp / (I + noise);
+      serving[i] = best; sinr[i] = 10 * Math.log10(s);
+      ok[i] = (pls[best] <= pm && sinr[i] >= 0) ? 1 : 0;
+    }
+    const load = new Int32Array(K); for (let i = 0; i < N; i++) if (ok[i]) load[serving[i]]++;
+    const rates = [];
+    for (let i = 0; i < N; i++) if (ok[i]) rates.push(bw / load[serving[i]] * Math.log2(1 + Math.pow(10, sinr[i] / 10)) / 1e6);
+    rates.sort((a, b) => a - b);
+    const sorted = Array.from(sinr).sort((a, b) => a - b);
+    return { ok, sinr, cov: 100 * rates.length / N, med: sorted[Math.floor(N / 2)],
+      sum: rates.reduce((a, b) => a + b, 0), edge: rates.length ? rates[Math.floor(0.05 * (rates.length - 1))] : 0 };
+  }
+  function channels(uavs){
+    const K = uavs.length, ch = new Array(K).fill(0);
+    if (S.reuse === 1) return ch;
+    ch.fill(-1);
+    const D = uavs.map(a => uavs.map(b => Math.hypot(a[0] - b[0], a[1] - b[1])));
+    const order = [...Array(K).keys()].sort((x, y) => D[y].reduce((p, q) => p + q, 0) - D[x].reduce((p, q) => p + q, 0));
+    for (const k of order){
+      let best = 0, bd = -1;
+      for (let c = 0; c < S.reuse; c++){
+        let dmin = Infinity; for (let j = 0; j < K; j++) if (ch[j] === c) dmin = Math.min(dmin, D[k][j]);
+        if (dmin > bd){ bd = dmin; best = c; }
+      }
+      ch[k] = best;
+    }
+    return ch;
+  }
+
+  // ---------- placement ----------
+  function coveredCount(users, uavs, R){
+    let n = 0;
+    for (const u of users) for (const v of uavs) if (Math.hypot(u[0] - v[0], u[1] - v[1]) <= R){ n++; break; }
+    return n;
+  }
+  function gridPlace(K){
+    const cols = Math.ceil(Math.sqrt(K)), rows = Math.ceil(K / cols), pts = [];
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) pts.push([(x + .5) * AREA / cols, (y + .5) * AREA / rows]);
+    return pts.slice(0, K);
+  }
+  function kmeans(users, K, r){
+    const C = [users[Math.floor(r() * users.length)].slice()];
+    while (C.length < K){
+      const d = users.map(u => Math.min(...C.map(c => (u[0] - c[0]) ** 2 + (u[1] - c[1]) ** 2)));
+      let t = r() * d.reduce((a, b) => a + b, 0), i = 0;
+      while (t > d[i] && i < d.length - 1){ t -= d[i]; i++; }
+      C.push(users[i].slice());
+    }
+    for (let it = 0; it < 40; it++){
+      const sx = new Array(K).fill(0), sy = new Array(K).fill(0), n = new Array(K).fill(0);
+      for (const u of users){
+        let b = 0, bd = Infinity;
+        for (let k = 0; k < K; k++){ const d = (u[0] - C[k][0]) ** 2 + (u[1] - C[k][1]) ** 2; if (d < bd){ bd = d; b = k; } }
+        sx[b] += u[0]; sy[b] += u[1]; n[b]++;
+      }
+      for (let k = 0; k < K; k++) if (n[k]) C[k] = [sx[k] / n[k], sy[k] / n[k]];
+    }
+    return C;
+  }
+  function greedy(users, K, R){
+    const cand = []; for (let x = 50; x < AREA; x += 100) for (let y = 50; y < AREA; y += 100) cand.push([x, y]);
+    const unc = new Uint8Array(users.length).fill(1), chosen = [];
+    for (let k = 0; k < K; k++){
+      let bj = 0, bg = -1;
+      for (let j = 0; j < cand.length; j++){
+        let g = 0; const c = cand[j];
+        for (let i = 0; i < users.length; i++) if (unc[i] && Math.hypot(users[i][0] - c[0], users[i][1] - c[1]) <= R) g++;
+        if (g > bg){ bg = g; bj = j; }
+      }
+      chosen.push(cand[bj].slice());
+      for (let i = 0; i < users.length; i++) if (Math.hypot(users[i][0] - cand[bj][0], users[i][1] - cand[bj][1]) <= R) unc[i] = 0;
+    }
+    for (let pass = 0; pass < 3; pass++) for (let k = 0; k < K; k++){
+      let sx = 0, sy = 0, n = 0;
+      for (const u of users) if (Math.hypot(u[0] - chosen[k][0], u[1] - chosen[k][1]) <= R){ sx += u[0]; sy += u[1]; n++; }
+      if (!n) continue;
+      const trial = chosen.map(c => c.slice()); trial[k] = [sx / n, sy / n];
+      if (coveredCount(users, trial, R) >= coveredCount(users, chosen, R)) chosen.splice(0, K, ...trial);
+    }
+    return chosen;
+  }
+  function fitness(users, X){ const e = evaluate(users, X); return e.cov * users.length / 100 + 0.5 * Math.max(-10, Math.min(30, e.med)) / 30; }
+  async function hybrid(users, K, R, r){
+    const P = 18, IT = 40, sub = users.filter((_, i) => i % 2 === 0);
+    const seeds = [greedy(users, K, R), kmeans(users, K, r)];
+    let X = [], V = [];
+    for (let p = 0; p < P; p++){
+      X.push(p < seeds.length ? seeds[p].map(c => c.slice()) : Array.from({length: K}, () => [r() * AREA, r() * AREA]));
+      V.push(Array.from({length: K}, () => [gauss(r) * 80, gauss(r) * 80]));
+    }
+    let pb = X.map(x => x.map(c => c.slice())), pf = X.map(x => fitness(sub, x));
+    let gi = pf.indexOf(Math.max(...pf)), gb = pb[gi].map(c => c.slice()), gf = pf[gi];
+    for (let it = 0; it < IT; it++){
+      for (let p = 0; p < P; p++){
+        for (let k = 0; k < K; k++) for (let d = 0; d < 2; d++){
+          V[p][k][d] = 0.72 * V[p][k][d] + 1.49 * r() * (pb[p][k][d] - X[p][k][d]) + 1.49 * r() * (gb[k][d] - X[p][k][d]);
+          V[p][k][d] = Math.max(-400, Math.min(400, V[p][k][d]));
+          X[p][k][d] = clamp(X[p][k][d] + V[p][k][d]);
+        }
+        const f = fitness(sub, X[p]);
+        if (f > pf[p]){ pf[p] = f; pb[p] = X[p].map(c => c.slice()); if (f > gf){ gf = f; gb = X[p].map(c => c.slice()); } }
+      }
+      if (it % 5 === 4){ status(`Optimising placement… iteration ${it + 1}/${IT}`); await new Promise(res => setTimeout(res, 0)); }
+    }
+    return gb;
+  }
+  async function place(){
+    const r = rng(S.seed * 31 + S.K);
+    const R = S.R, K = S.K, u = S.users;
+    const t0 = performance.now();
+    if (S.alg === "Random") S.uavs = Array.from({length: K}, () => [r() * AREA, r() * AREA]);
+    else if (S.alg === "Grid") S.uavs = gridPlace(K);
+    else if (S.alg === "K-means") S.uavs = kmeans(u, K, r);
+    else if (S.alg === "Greedy-MCP") S.uavs = greedy(u, K, R);
+    else { busy(true); S.uavs = await hybrid(u, K, R, r); busy(false); }
+    draw();
+    status(`${S.alg}: placed ${K} UAV${K > 1 ? "s" : ""} in ${(performance.now() - t0).toFixed(0)} ms`);
+  }
+  function busy(b){ for (const id of ["place", "newScen", "alg", "k", "env"]) $(id).disabled = b; }
+  function status(t){ $("status").textContent = t; }
+
+  // ---------- drawing ----------
+  const map = $("map"), mctx = map.getContext("2d");
+  const heat = document.createElement("canvas"); heat.width = heat.height = 90;
+  function color(s){
+    const t = Math.max(0, Math.min(1, (s + 10) / 40));
+    const stops = [[0, [20, 24, 60]], [0.25, [38, 70, 140]], [0.5, [24, 130, 150]], [0.75, [46, 196, 182]], [1, [210, 245, 180]]];
+    for (let i = 1; i < stops.length; i++) if (t <= stops[i][0]){
+      const [a, ca] = stops[i - 1], [b, cb] = stops[i], f = (t - a) / (b - a);
+      return ca.map((v, j) => Math.round(v + (cb[j] - v) * f));
+    }
+    return stops[4][1];
+  }
+  function draw(){
+    const W = map.width, sc = W / AREA;
+    const n = heat.width, hctx = heat.getContext("2d"), img = hctx.createImageData(n, n);
+    const pts = []; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) pts.push([(x + .5) * AREA / n, AREA - (y + .5) * AREA / n]);
+    const g = evaluate(pts, S.uavs);
+    for (let i = 0; i < pts.length; i++){
+      const c = color(g.sinr[i]), o = i * 4;
+      img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = g.ok[i] ? 255 : 120;
+    }
+    hctx.putImageData(img, 0, 0);
+    mctx.fillStyle = "#06101E"; mctx.fillRect(0, 0, W, W);
+    mctx.imageSmoothingEnabled = true; mctx.drawImage(heat, 0, 0, W, W);
+    mctx.strokeStyle = "rgba(255,255,255,0.07)"; mctx.lineWidth = 1;
+    for (let k = 1; k < 4; k++){ const p = k * 1000 * sc; mctx.beginPath(); mctx.moveTo(p, 0); mctx.lineTo(p, W); mctx.moveTo(0, p); mctx.lineTo(W, p); mctx.stroke(); }
+    const e = evaluate(S.users, S.uavs);
+    S.users.forEach((u, i) => {
+      const x = u[0] * sc, y = W - u[1] * sc;
+      if (e.ok[i]){ mctx.fillStyle = "rgba(255,255,255,0.9)"; mctx.beginPath(); mctx.arc(x, y, 2.2, 0, 7); mctx.fill(); }
+      else { mctx.strokeStyle = "#E5484D"; mctx.lineWidth = 2; mctx.beginPath(); mctx.moveTo(x - 3.5, y - 3.5); mctx.lineTo(x + 3.5, y + 3.5); mctx.moveTo(x + 3.5, y - 3.5); mctx.lineTo(x - 3.5, y + 3.5); mctx.stroke(); }
+    });
+    const chs = channels(S.uavs);
+    S.uavs.forEach((v, k) => {
+      const x = v[0] * sc, y = W - v[1] * sc;
+      mctx.setLineDash([8, 6]); mctx.strokeStyle = "rgba(255,255,255,0.75)"; mctx.lineWidth = 1.6;
+      mctx.beginPath(); mctx.arc(x, y, S.R * sc, 0, 7); mctx.stroke(); mctx.setLineDash([]);
+      mctx.fillStyle = "#F28C28"; mctx.strokeStyle = "#0A1424"; mctx.lineWidth = 2.5;
+      mctx.beginPath(); mctx.moveTo(x, y - 15); mctx.lineTo(x + 13, y + 10); mctx.lineTo(x - 13, y + 10); mctx.closePath(); mctx.fill(); mctx.stroke();
+      mctx.fillStyle = "#E8EEF7"; mctx.font = "600 17px 'JetBrains Mono', monospace";
+      mctx.fillText(S.reuse > 1 ? `U${k + 1}·f${chs[k] + 1}` : `U${k + 1}`, x + 15, y - 10);
+    });
+    mctx.fillStyle = "rgba(232,238,247,0.8)"; mctx.font = "500 16px Barlow, sans-serif";
+    mctx.fillText("1 km grid", 12, W - 12);
+    const set = (id, v) => $(id).textContent = v;
+    set("mCov", e.cov.toFixed(1) + "%"); set("mSinr", e.med.toFixed(1)); set("mSum", e.sum.toFixed(1));
+    set("mEdge", e.edge.toFixed(2)); set("mR", Math.round(S.R).toString());
+    set("mTh", (S.R > 0 ? Math.atan2(S.h, S.R) * 180 / Math.PI : 90).toFixed(1) + "°");
+    $("tCov").className = "tile " + (e.cov >= 90 ? "good" : e.cov >= 70 ? "warn" : "bad");
+    $("tSinr").className = "tile " + (e.med >= 10 ? "good" : e.med >= 3 ? "warn" : "bad");
+    $("mapTitle").textContent = `Best-server SINR map · ${S.K} UAV${S.K > 1 ? "s" : ""} at ${S.h} m`;
+    drawRH();
+  }
+  function drawRH(){
+    const cv = $("rh"), c = cv.getContext("2d"), W = cv.width, H = cv.height, L = 70, B = 44, T = 18, Rr = 16;
+    c.clearRect(0, 0, W, H);
+    const hs = [], Rs = []; for (let h = 10; h <= 1500; h += 10){ hs.push(h); Rs.push(radius(h, S.env, plMax())); }
+    const rmax = Math.max(...Rs, 100) * 1.1;
+    const X = h => L + (h / 1500) * (W - L - Rr), Y = r => H - B - (r / rmax) * (H - B - T);
+    c.fillStyle = "rgba(143,163,191,0.12)"; c.fillRect(X(0), T, X(120) - X(0), H - B - T);
+    c.strokeStyle = "#21385E"; c.lineWidth = 1; c.font = "20px Barlow, sans-serif"; c.fillStyle = "#8FA3BF";
+    const step = rmax > 2000 ? 1000 : rmax > 800 ? 250 : 100;
+    for (let r = 0; r <= rmax; r += step){ c.beginPath(); c.moveTo(L, Y(r)); c.lineTo(W - Rr, Y(r)); c.stroke(); c.fillText(r.toString(), 8, Y(r) + 6); }
+    for (const h of [0, 500, 1000, 1500]) c.fillText(h + " m", Math.min(X(h) - 18, W - 70), H - 14);
+    c.strokeStyle = "#2EC4B6"; c.lineWidth = 3.5; c.beginPath();
+    hs.forEach((h, i) => i ? c.lineTo(X(h), Y(Rs[i])) : c.moveTo(X(h), Y(Rs[i]))); c.stroke();
+    c.fillStyle = "#F28C28"; c.beginPath(); c.arc(X(S.h), Y(S.R), 7, 0, 7); c.fill();
+    c.fillStyle = "#8FA3BF"; c.fillText("R (m)", 8, T - 0); c.fillText("120 m cap", X(0) + 6, T + 18);
+  }
+
+  // ---------- interaction ----------
+  let dragK = -1;
+  function toWorld(ev){ const b = map.getBoundingClientRect(); return [(ev.clientX - b.left) / b.width * AREA, AREA - (ev.clientY - b.top) / b.height * AREA]; }
+  map.addEventListener("pointerdown", ev => {
+    const p = toWorld(ev); let best = -1, bd = 180;
+    S.uavs.forEach((v, k) => { const d = Math.hypot(v[0] - p[0], v[1] - p[1]); if (d < bd){ bd = d; best = k; } });
+    if (best >= 0){ dragK = best; map.setPointerCapture(ev.pointerId); map.classList.add("drag"); }
+  });
+  let pending = false;
+  map.addEventListener("pointermove", ev => {
+    if (dragK < 0) return;
+    const p = toWorld(ev); S.uavs[dragK] = [clamp(p[0]), clamp(p[1])];
+    if (!pending){ pending = true; requestAnimationFrame(() => { pending = false; draw(); }); }
+  });
+  const end = () => { if (dragK >= 0){ status(`Moved U${dragK + 1} by hand`); } dragK = -1; map.classList.remove("drag"); };
+  map.addEventListener("pointerup", end); map.addEventListener("pointercancel", end);
+
+  function updR(){ S.R = radius(S.h, S.env, plMax()); $("hV").textContent = S.h + " m"; $("h").value = S.h; }
+  $("env").addEventListener("change", e => { S.env = e.target.value; S.h = optimalAlt(S.env, plMax()); updR(); place(); });
+  $("k").addEventListener("input", e => { S.K = +e.target.value; $("kV").textContent = S.K; });
+  $("k").addEventListener("change", () => place());
+  $("h").addEventListener("input", e => { S.h = +e.target.value; updR(); draw(); });
+  $("pt").addEventListener("input", e => { S.pt = +e.target.value; $("ptV").textContent = S.pt + " dBm"; updR(); draw(); });
+  $("hOpt").addEventListener("click", () => { S.h = optimalAlt(S.env, plMax()); updR(); draw(); status(`Optimal altitude for this environment: ${S.h} m`); });
+  $("hCap").addEventListener("click", () => { S.h = 120; updR(); draw(); status("Altitude capped at 120 m (small-drone regulation)"); });
+  for (const [id, v] of [["r1", 1], ["r3", 3]]) $(id).addEventListener("click", () => {
+    S.reuse = v; $("r1").setAttribute("aria-pressed", v === 1); $("r3").setAttribute("aria-pressed", v === 3); draw();
+  });
+  $("alg").addEventListener("change", e => { S.alg = e.target.value; place(); });
+  $("place").addEventListener("click", () => place());
+  $("newScen").addEventListener("click", () => { S.seed = 1 + Math.floor(Math.random() * 9999); S.users = makeScenario(S.seed); place(); });
+
+  // initial state: urban, 6 UAVs, optimal altitude; show K-means instantly, then refine with Hybrid
+  S.users = makeScenario(S.seed); updR();
+  S.uavs = kmeans(S.users, S.K, rng(5)); draw(); status("Showing k-means; refining with Hybrid Greedy-PSO…");
+  setTimeout(place, 50);
+})();
+</script>
+</body>
+</html>

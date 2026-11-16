@@ -1,0 +1,545 @@
+{
+ "config": {
+  "fc": 2000000000.0,
+  "pt_dbm": 20.0,
+  "g_tx_dbi": 3.0,
+  "g_rx_dbi": 0.0,
+  "losses_db": 3.0,
+  "total_bw_hz": 15000000.0,
+  "noise_figure_db": 7.0,
+  "sinr_th_db": 0.0,
+  "pl_max_db": 100.0,
+  "reuse": 1
+ },
+ "urban_opt": {
+  "h": 646.0405916314469,
+  "R": 706.5487673693966,
+  "theta": 42.438577210019396
+ },
+ "e1": [
+  {
+   "environment": "Suburban",
+   "h_opt_m": 403.6884762690566,
+   "R_opt_m": 1089.0507142270887,
+   "theta_opt_deg": 20.33869677370533,
+   "R_at_120m": 617.9868518296428,
+   "area_loss_pct": 67.79952619239339
+  },
+  {
+   "environment": "Urban",
+   "h_opt_m": 646.0405916314469,
+   "R_opt_m": 706.5487673693966,
+   "theta_opt_deg": 42.438577210019396,
+   "R_at_120m": 291.7120236552964,
+   "area_loss_pct": 82.9539258235628
+  },
+  {
+   "environment": "Dense urban",
+   "h_opt_m": 630.948948543787,
+   "R_opt_m": 448.07492086858304,
+   "theta_opt_deg": 54.619140713041226,
+   "R_at_120m": 197.0316973406849,
+   "area_loss_pct": 80.66380916123325
+  },
+  {
+   "environment": "High-rise urban",
+   "h_opt_m": 234.90665186214042,
+   "R_opt_m": 60.6683650329416,
+   "theta_opt_deg": 75.5188913633844,
+   "R_at_120m": 51.318176256141435,
+   "area_loss_pct": 28.448647787325353
+  }
+ ],
+ "e2": [
+  {
+   "algorithm": "Random",
+   "runtime_s_mean": 5.489449995366158e-06,
+   "runtime_s_std": 1.2432544826134794e-06,
+   "n_users_mean": 865.9,
+   "n_users_std": 58.435659624834166,
+   "coverage_pct_mean": 39.26925221800205,
+   "coverage_pct_std": 14.064733937212685,
+   "mean_rate_mbps_mean": 0.6066905085830802,
+   "mean_rate_mbps_std": 0.23256214329309255,
+   "edge_rate_mbps_mean": 0.16343536539723252,
+   "edge_rate_mbps_std": 0.05099378720040521,
+   "sum_rate_mbps_mean": 187.39171758591164,
+   "sum_rate_mbps_std": 54.62666873637838,
+   "jain_mean": 0.34972262094698603,
+   "jain_std": 0.14148767817900376,
+   "median_sinr_db_mean": 2.256553582027766,
+   "median_sinr_db_std": 1.863082856355873
+  },
+  {
+   "algorithm": "Grid",
+   "runtime_s_mean": 2.4023599979727806e-05,
+   "runtime_s_std": 1.0234692533475179e-05,
+   "n_users_mean": 865.9,
+   "n_users_std": 58.435659624834166,
+   "coverage_pct_mean": 68.37242439252807,
+   "coverage_pct_std": 9.591759266294533,
+   "mean_rate_mbps_mean": 0.4609079705229136,
+   "mean_rate_mbps_std": 0.07352393557726257,
+   "edge_rate_mbps_mean": 0.14341624945339762,
+   "edge_rate_mbps_std": 0.03668511228826163,
+   "sum_rate_mbps_mean": 267.6691515527967,
+   "sum_rate_mbps_std": 26.70739212708896,
+   "jain_mean": 0.49690760388819655,
+   "jain_std": 0.15502701141485176,
+   "median_sinr_db_mean": 6.6720612811857745,
+   "median_sinr_db_std": 1.7810425373204415
+  },
+  {
+   "algorithm": "K-means",
+   "runtime_s_mean": 0.008629120550011748,
+   "runtime_s_std": 0.0034950678606421237,
+   "n_users_mean": 865.9,
+   "n_users_std": 58.435659624834166,
+   "coverage_pct_mean": 89.63290026990454,
+   "coverage_pct_std": 1.9521686685021602,
+   "mean_rate_mbps_mean": 0.35943281648066105,
+   "mean_rate_mbps_std": 0.059109023488579056,
+   "edge_rate_mbps_mean": 0.14895500989176547,
+   "edge_rate_mbps_std": 0.033425932613759646,
+   "sum_rate_mbps_mean": 277.12165636215155,
+   "sum_rate_mbps_std": 36.114561772444894,
+   "jain_mean": 0.736942422549477,
+   "jain_std": 0.24004402417890822,
+   "median_sinr_db_mean": 7.750634427538058,
+   "median_sinr_db_std": 1.8968134970275456
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "runtime_s_mean": 0.05600747844999887,
+   "runtime_s_std": 0.005069078908527138,
+   "n_users_mean": 865.9,
+   "n_users_std": 58.435659624834166,
+   "coverage_pct_mean": 86.82141997935074,
+   "coverage_pct_std": 4.915877323958294,
+   "mean_rate_mbps_mean": 0.34186241662902245,
+   "mean_rate_mbps_std": 0.05006049680482331,
+   "edge_rate_mbps_mean": 0.11486907780814445,
+   "edge_rate_mbps_std": 0.03469395976423199,
+   "sum_rate_mbps_mean": 256.8775945920585,
+   "sum_rate_mbps_std": 42.31416430469388,
+   "jain_mean": 0.692315053192272,
+   "jain_std": 0.17239591089788628,
+   "median_sinr_db_mean": 7.279187049851093,
+   "median_sinr_db_std": 2.749850650375137
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "runtime_s_mean": 1.1798100169499945,
+   "runtime_s_std": 0.11176915113123823,
+   "n_users_mean": 865.9,
+   "n_users_std": 58.435659624834166,
+   "coverage_pct_mean": 92.14203865633264,
+   "coverage_pct_std": 1.4189436941926459,
+   "mean_rate_mbps_mean": 0.3641646732853711,
+   "mean_rate_mbps_std": 0.05502938091271878,
+   "edge_rate_mbps_mean": 0.13623541038281076,
+   "edge_rate_mbps_std": 0.035385051033777606,
+   "sum_rate_mbps_mean": 288.7849863781248,
+   "sum_rate_mbps_std": 34.90373597277299,
+   "jain_mean": 0.678965472721939,
+   "jain_std": 0.22902062232840584,
+   "median_sinr_db_mean": 8.823635405530933,
+   "median_sinr_db_std": 1.7603660136318955
+  }
+ ],
+ "e3": [
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 1,
+   "mean": 28.52241821544605,
+   "std": 3.782436984174563
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 2,
+   "mean": 50.31480978429865,
+   "std": 5.258286559691763
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 3,
+   "mean": 67.21047289884044,
+   "std": 4.301240070140633
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 4,
+   "mean": 80.60791962458397,
+   "std": 3.6897020730194106
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 5,
+   "mean": 87.60010805335955,
+   "std": 2.1082694727056386
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 6,
+   "mean": 91.35249867921198,
+   "std": 1.1924741639934202
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 7,
+   "mean": 93.49451997503253,
+   "std": 0.9193415626178996
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 8,
+   "mean": 95.08434393506172,
+   "std": 1.0067124742192133
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 9,
+   "mean": 96.59838430108499,
+   "std": 0.7738776948745524
+  },
+  {
+   "algorithm": "Greedy-MCP",
+   "K": 10,
+   "mean": 97.68514462555967,
+   "std": 0.6783093975765204
+  },
+  {
+   "algorithm": "Grid",
+   "K": 1,
+   "mean": 12.227262668718517,
+   "std": 7.584544641839189
+  },
+  {
+   "algorithm": "Grid",
+   "K": 2,
+   "mean": 22.715302764490815,
+   "std": 9.331326360258723
+  },
+  {
+   "algorithm": "Grid",
+   "K": 3,
+   "mean": 37.85900584435201,
+   "std": 10.03601148275648
+  },
+  {
+   "algorithm": "Grid",
+   "K": 4,
+   "mean": 50.46507550664866,
+   "std": 9.808408072181336
+  },
+  {
+   "algorithm": "Grid",
+   "K": 5,
+   "mean": 59.12060857730707,
+   "std": 10.746909541401145
+  },
+  {
+   "algorithm": "Grid",
+   "K": 6,
+   "mean": 68.84273470121934,
+   "std": 9.693193286841973
+  },
+  {
+   "algorithm": "Grid",
+   "K": 7,
+   "mean": 69.99073464881981,
+   "std": 9.547341219336689
+  },
+  {
+   "algorithm": "Grid",
+   "K": 8,
+   "mean": 81.16255053803795,
+   "std": 6.072475772259405
+  },
+  {
+   "algorithm": "Grid",
+   "K": 9,
+   "mean": 89.46762857224462,
+   "std": 4.894127767906108
+  },
+  {
+   "algorithm": "Grid",
+   "K": 10,
+   "mean": 81.7638763731823,
+   "std": 6.620426333974837
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 1,
+   "mean": 28.850593899370757,
+   "std": 3.7967965719736188
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 2,
+   "mean": 51.24569514343496,
+   "std": 5.579616122495066
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 3,
+   "mean": 68.3580283745899,
+   "std": 4.83520387040776
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 4,
+   "mean": 82.57400622244896,
+   "std": 4.059453256443609
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 5,
+   "mean": 89.55619839400987,
+   "std": 1.9622183600960632
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 6,
+   "mean": 92.98146195841929,
+   "std": 1.0531255270123507
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 7,
+   "mean": 94.85568466499662,
+   "std": 0.9235589294005384
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 8,
+   "mean": 96.26955524072302,
+   "std": 0.6602004715481292
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 9,
+   "mean": 97.47205221180742,
+   "std": 0.6191889159846891
+  },
+  {
+   "algorithm": "Hybrid Greedy-PSO",
+   "K": 10,
+   "mean": 98.4338027248949,
+   "std": 0.456310949388386
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 1,
+   "mean": 28.850593899370757,
+   "std": 3.7967965719736188
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 2,
+   "mean": 51.24592653246641,
+   "std": 5.574472602498668
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 3,
+   "mean": 68.37101299555376,
+   "std": 4.897858703414879
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 4,
+   "mean": 82.35523138314079,
+   "std": 3.919805269525034
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 5,
+   "mean": 89.00188314468265,
+   "std": 2.239349041050161
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 6,
+   "mean": 92.14203865633264,
+   "std": 1.4189436941926459
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 7,
+   "mean": 94.1192882951851,
+   "std": 1.161319479994897
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 8,
+   "mean": 95.08292314081027,
+   "std": 1.3371201779389275
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 9,
+   "mean": 95.97183215652747,
+   "std": 1.2585374307020303
+  },
+  {
+   "algorithm": "Hybrid, reuse 1",
+   "K": 10,
+   "mean": 95.98375889310876,
+   "std": 1.5060811719828533
+  },
+  {
+   "algorithm": "K-means",
+   "K": 1,
+   "mean": 13.135492166217068,
+   "std": 8.349427623828248
+  },
+  {
+   "algorithm": "K-means",
+   "K": 2,
+   "mean": 34.695502358855904,
+   "std": 10.462964850400041
+  },
+  {
+   "algorithm": "K-means",
+   "K": 3,
+   "mean": 60.04292612049594,
+   "std": 7.507846854728797
+  },
+  {
+   "algorithm": "K-means",
+   "K": 4,
+   "mean": 79.00290345394504,
+   "std": 4.138626029488955
+  },
+  {
+   "algorithm": "K-means",
+   "K": 5,
+   "mean": 87.09655784396851,
+   "std": 2.7142743778993808
+  },
+  {
+   "algorithm": "K-means",
+   "K": 6,
+   "mean": 90.81247132924169,
+   "std": 1.7217574229879309
+  },
+  {
+   "algorithm": "K-means",
+   "K": 7,
+   "mean": 92.7735022515544,
+   "std": 0.9192123607980521
+  },
+  {
+   "algorithm": "K-means",
+   "K": 8,
+   "mean": 94.27833776785249,
+   "std": 0.8190966616147606
+  },
+  {
+   "algorithm": "K-means",
+   "K": 9,
+   "mean": 95.70596025034118,
+   "std": 0.6281600476326581
+  },
+  {
+   "algorithm": "K-means",
+   "K": 10,
+   "mean": 96.47181956518808,
+   "std": 0.655899885605971
+  },
+  {
+   "algorithm": "Random",
+   "K": 1,
+   "mean": 11.618010862094385,
+   "std": 8.154460463156944
+  },
+  {
+   "algorithm": "Random",
+   "K": 2,
+   "mean": 19.062488973229684,
+   "std": 10.150031418498804
+  },
+  {
+   "algorithm": "Random",
+   "K": 3,
+   "mean": 26.274229988561444,
+   "std": 13.002180216423422
+  },
+  {
+   "algorithm": "Random",
+   "K": 4,
+   "mean": 33.10057241781194,
+   "std": 13.593599078623532
+  },
+  {
+   "algorithm": "Random",
+   "K": 5,
+   "mean": 39.96464381337866,
+   "std": 13.593013946168693
+  },
+  {
+   "algorithm": "Random",
+   "K": 6,
+   "mean": 46.510744829953225,
+   "std": 14.209237445193738
+  },
+  {
+   "algorithm": "Random",
+   "K": 7,
+   "mean": 50.02323153131668,
+   "std": 13.47959239957536
+  },
+  {
+   "algorithm": "Random",
+   "K": 8,
+   "mean": 54.65360982815241,
+   "std": 12.410096980435538
+  },
+  {
+   "algorithm": "Random",
+   "K": 9,
+   "mean": 58.45273937448388,
+   "std": 12.121930123666306
+  },
+  {
+   "algorithm": "Random",
+   "K": 10,
+   "mean": 62.2210703002149,
+   "std": 11.672708290184811
+  }
+ ],
+ "e4": {
+  "reuse1": {
+   "coverage_pct": 92.14203865633264,
+   "median_sinr_db": 8.820670081983824,
+   "mean_rate_mbps": 0.36170464225717036,
+   "p5_rate_mbps": 0.12071838868328999,
+   "p95_rate_mbps": 0.6269340133636581
+  },
+  "reuse3": {
+   "coverage_pct": 92.98146195841927,
+   "median_sinr_db": 21.154032300722864,
+   "mean_rate_mbps": 0.2539887664920322,
+   "p5_rate_mbps": 0.13178455277177806,
+   "p95_rate_mbps": 0.37812890662435544
+  }
+ },
+ "e5": {
+  "R120": 291.7120236552964,
+  "K90_opt": 6,
+  "K90_cap": null
+ },
+ "e6": {
+  "hover_w": 168.49,
+  "min_power_w": 126.00819237222636,
+  "v_min_power": 10.251256281407034,
+  "T_on_min": 41.20931702148894,
+  "fleet_swap_sim": 9,
+  "fleet_recharge_sim": 16,
+  "fleet_swap_analytic": 9,
+  "fleet_recharge_analytic": 16
+ },
+ "seeds": 20,
+ "runtime_s": 669.3350315093994
+}
