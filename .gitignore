@@ -1,25 +1,40 @@
-# Dependencies
-node_modules/
-frontend/node_modules/
-
-# Python cache & testing artifacts
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
 .pytest_cache/
-.coverage
-htmlcov/
-
-# Logs & temp files
+.env
 *.log
-npm-debug.log*
-yarn-debug.log*
 
-# OS and Editor
+# Node / Frontend
+frontend/node_modules/
+frontend/.cache/
+
+# Zip files
+*.zip
+
+# OS
 .DS_Store
 Thumbs.db
-desktop.ini
+
+# IDE
 .vscode/
 .idea/
-
-# Zip file (already extracted in uav_drn_implementation)
-uav_drn_implementation.zip
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
